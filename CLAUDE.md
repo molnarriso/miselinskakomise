@@ -4,22 +4,17 @@ Working instructions for Claude Code on this project.
 
 ## Access
 
-```
-SSH key:  C:\Development\SlurpJob\slurpjob.pem
-EC2 host: ec2-user@3.127.242.167
-WP user:  molnarriso@gmail.com
-WP pass:  DAck3HuzTg7a)2p#3W
-```
+All credentials live in `deploy.config.ps1` (gitignored). Copy `deploy.config.ps1.example`
+and fill in the real values. Variables provided:
 
-SSH shorthand used in all commands below:
-```bash
-ssh -i "C:/Development/SlurpJob/slurpjob.pem" ec2-user@3.127.242.167
-```
+- `$key` — path to SSH private key
+- `$server` — `ec2-user@<ip>`
+- `$src` — local plugin source path
+- `$remote` — remote plugin path on server
+- `$wp_user` — WP admin username
+- `$wp_password` — WP admin password
 
-WP-CLI shorthand (run any `wp` command inside the container):
-```bash
-ssh -i "C:/Development/SlurpJob/slurpjob.pem" ec2-user@3.127.242.167 "sudo docker exec miselinska_app wp <command> --allow-root"
-```
+To use them in any script: dot-source the config at the top (see Pattern B in Shell section).
 
 ## Infrastructure
 
@@ -37,14 +32,17 @@ Do not debug either of these — work around them.
 
 **Two patterns, nothing else:**
 
-Simple one-liners (SSH, WP-CLI):
+**Pattern A — local commands only (no SSH, no vars):**
 ```
-powershell.exe -Command "(ssh -i 'C:\Development\SlurpJob\slurpjob.pem' ec2-user@3.127.242.167 'REMOTE CMD') | Write-Host"
+powershell.exe -ExecutionPolicy Bypass -Command "Get-ChildItem ..."
 ```
+Do NOT use Pattern A for SSH — `$key`/`$server` dollar signs get stripped by the Bash tool.
 
-Anything needing PowerShell variables or logic — write to `tmp/`, run, done:
+**Pattern B — everything that touches the server (always use this for SSH/WP-CLI):**
 ```
 # 1. Write script with the Write tool to C:\Development\miselinskakomise\tmp\task.ps1
+#    Start with: . "$PSScriptRoot\..\deploy.config.ps1"
+#    Then use $key, $server, $src, $remote, $wp_user, $wp_password freely
 # 2. powershell.exe -ExecutionPolicy Bypass -File C:\Development\miselinskakomise\tmp\task.ps1
 # 3. The tmp/ folder is disposable — no cleanup needed
 ```
@@ -62,35 +60,41 @@ git commit -m "short description"
 git push
 ```
 
-`deploy.config.ps1` is gitignored — it holds server address and SSH key path.
-On a new machine, create it manually using the values in the Access section above.
+`deploy.config.ps1` is gitignored — it holds all credentials and paths.
+On a new machine, copy `deploy.config.ps1.example` and fill in the real values.
 
 ## Deployment
 
-Deploy by running `deploy.ps1` — it SCPs each plugin file individually to the
-server and activates the plugin. Always use this script; never use
-`Compress-Archive` to package PHP files as it silently produces 0-byte files
-for UTF-8 content.
+Run from the Bash tool:
 
 ```
 powershell.exe -ExecutionPolicy Bypass -File C:\Development\miselinskakomise\deploy.ps1
 ```
 
-The script prints each uploaded file, runs a PHP lint check, and confirms the
-plugin is active. The activate call is idempotent — safe to run every time.
+What the script does, in order:
+1. Dot-sources `deploy.config.ps1` to load `$key`, `$server`, `$src`, `$remote`
+2. Enumerates every file under `miselinska-komise/` recursively
+3. For each file: creates the remote directory if needed, SCPs the file to `/tmp/_deploy_file`, then moves it into place with correct `www-data:www-data` ownership
+4. PHP lint check on the main plugin file — output printed; a fatal here means broken deploy
+5. `wp plugin activate miselinska-komise` — idempotent, safe every time
+6. `wp plugin list` — printed so you can confirm the plugin shows `active`
+
+**Never use `Compress-Archive` or zip** — it silently produces 0-byte files for UTF-8 PHP content. Always deploy with this script.
+
+If any file shows `=> ` with no `OK`, the move failed — check permissions or disk space on the server.
 
 ## Testing Approach
 
-After every deploy I verify via SSH:
+After every deploy, verify via Pattern B script (dot-source config, use `$key`/`$server`):
 
-| Check | Command |
+| Check | Remote command (value of `"..."` in `ssh -i $key $server "..."`) |
 |-------|---------|
 | PHP errors / fatal | `sudo docker logs miselinska_app --tail 50` |
-| Plugin active | `wp plugin list` |
-| CPT registered | `wp post-type list` |
+| Plugin active | `sudo docker exec miselinska_app wp plugin list --allow-root` |
+| CPT registered | `sudo docker exec miselinska_app wp post-type list --allow-root` |
 | REST API returns reviews | `curl -s http://localhost:8080/wp-json/wp/v2/recenze` |
-| Pages exist | `wp post list --post_type=page` |
-| AJAX handler registered | `wp eval 'echo has_action("wp_ajax_mk_submit_review");'` |
+| Pages exist | `sudo docker exec miselinska_app wp post list --post_type=page --allow-root` |
+| AJAX handler registered | `sudo docker exec miselinska_app wp eval 'echo has_action("wp_ajax_mk_submit_review");' --allow-root` |
 
 I cannot open a browser — I have no visual access to the site.
 
@@ -110,35 +114,44 @@ Never commit until the feature is confirmed working.
 
 ## WP-CLI Reference
 
-```bash
+All WP-CLI commands run via Pattern B. Template:
+
+```powershell
+. "$PSScriptRoot\..\deploy.config.ps1"
+ssh -i $key $server "sudo docker exec miselinska_app wp <COMMAND> --allow-root"
+```
+
+Common `<COMMAND>` values:
+
+```powershell
 # Activate / deactivate plugin
-wp plugin activate miselinska-komise --allow-root
-wp plugin deactivate miselinska-komise --allow-root
+plugin activate miselinska-komise
+plugin deactivate miselinska-komise
 
 # Flush rewrite rules (always after CPT/taxonomy changes)
-wp rewrite flush --allow-root
+rewrite flush
 
 # Create a page
-wp post create --post_type=page --post_title='Domů' --post_status=publish --allow-root
+post create --post_type=page --post_title='Domů' --post_status=publish --porcelain
 
 # Set static front page
-wp option update show_on_front page --allow-root
-wp option update page_on_front <ID> --allow-root
+option update show_on_front page
+option update page_on_front <ID>
 
 # Install and activate theme
-wp theme install generatepress --activate --allow-root
+theme install generatepress --activate
 
 # Set locale / timezone
-wp option update WPLANG cs_CZ --allow-root
-wp option update timezone_string Europe/Prague --allow-root
+option update WPLANG cs_CZ
+option update timezone_string Europe/Prague
 
 # Create nav menu
-wp menu create "Hlavní menu" --allow-root
-wp menu item add-post <menu-id> <post-id> --allow-root
-wp menu location assign <menu-id> primary --allow-root
+menu create "Hlavní menu" --porcelain
+menu item add-post <menu-id> <post-id>
+menu location assign <menu-id> primary
 
-# Tail WordPress logs
-sudo docker logs miselinska_app -f --tail 100
+# Tail WordPress logs (this one runs on the host, not in the container)
+# ssh -i $key $server "sudo docker logs miselinska_app --tail 100"
 ```
 
 ## Do Not Touch

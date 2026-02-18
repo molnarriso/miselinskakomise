@@ -1,0 +1,9 @@
+# Copy this file to deploy.config.ps1 and fill in real values.
+# deploy.config.ps1 is gitignored — never commit it.
+
+$key       = "C:\path\to\your.pem"
+$server    = "ec2-user@<EC2-IP>"
+$src       = "C:\Development\miselinskakomise\miselinska-komise"
+$remote    = "/home/ec2-user/miselinskakomise/wp_data/wp-content/plugins/miselinska-komise"
+$wp_user   = "your-wp-admin-email@example.com"
+$wp_password = "your-wp-admin-password"

@@ -21,7 +21,7 @@ miselinskakomise/
 └── README.md                 # This file
 ```
 
-`deploy.config.ps1` is gitignored. Recreate it from the Access section in CLAUDE.md.
+`deploy.config.ps1` is gitignored. Recreate it by copying `deploy.config.ps1.example` and filling in real values.
 
 ---
 
@@ -77,9 +77,10 @@ powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
 
 The script SCPs each file individually to the server and activates the plugin. **Never use `Compress-Archive` / zip** — it silently produces 0-byte PHP files.
 
-After deploy, verify on the server:
-```bash
-ssh -i "C:/Development/SlurpJob/slurpjob.pem" ec2-user@3.127.242.167 "sudo docker logs miselinska_app --tail 20"
+After deploy, verify on the server (Pattern B — dot-source config for `$key`/`$server`):
+```powershell
+. "$PSScriptRoot\deploy.config.ps1"
+ssh -i $key $server "sudo docker logs miselinska_app --tail 20"
 ```
 
 See CLAUDE.md for the full verification checklist.
@@ -90,22 +91,24 @@ See CLAUDE.md for the full verification checklist.
 
 The Bash tool in Claude Code on this machine runs Git Bash (MINGW64). **Simple Unix commands (`echo`, `uname`) fail silently.** Two reliable patterns only:
 
-**Pattern A — Single SSH command (no variables needed):**
+**Pattern A — local PowerShell only (no SSH, no credentials):**
 ```bash
-powershell.exe -Command "(ssh -i 'C:/Development/SlurpJob/slurpjob.pem' ec2-user@3.127.242.167 'sudo docker logs miselinska_app --tail 20') | Write-Host"
+powershell.exe -ExecutionPolicy Bypass -Command "Get-ChildItem ..."
 ```
 
-**Pattern B — Anything needing variables: write a `.ps1` file, then run it:**
+**Pattern B — anything touching the server (always use for SSH/WP-CLI):**
 ```bash
-# Step 1: Write the script to tmp/
+# Step 1: Write script to tmp/ with the Write tool. Start with:
+#   . "$PSScriptRoot\..\deploy.config.ps1"
+#   Then use $key, $server, $wp_user, $wp_password freely.
 # Step 2:
 powershell.exe -ExecutionPolicy Bypass -File tmp/myscript.ps1
 ```
 
 Rules:
+- SSH always needs Pattern B — `$key`/`$server` dollar signs get stripped in inline `-Command "..."`
 - Never run parallel Bash tool calls — they all fail together
 - Never use `2>/dev/null` — you want to see errors
-- Dollar signs (`$var`) in inline `-Command "..."` strings get stripped by Bash; use `-File` instead
 - `tmp/` is gitignored — safe for throwaway scripts
 
 ---
@@ -129,8 +132,7 @@ Commit only after the user visually confirms the change works in the browser.
 ## WP Admin Access
 
 - URL: https://miselinskakomise.cz/wp-admin/
-- User: molnarriso@gmail.com
-- Pass: see CLAUDE.md
+- Credentials: see `deploy.config.ps1` (gitignored) — copy from `deploy.config.ps1.example`
 
 ---
 
