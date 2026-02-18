@@ -52,6 +52,19 @@ Anything needing PowerShell variables or logic — write to `tmp/`, run, done:
 Never run multiple Bash tool calls in parallel — they often all fail together.
 Never use `2>/dev/null` — always let errors surface.
 
+## Git Workflow
+
+Branch: `main`. Commit directly — no feature branches needed for small changes.
+
+```
+git add miselinska-komise/ deploy.ps1
+git commit -m "short description"
+git push
+```
+
+`deploy.config.ps1` is gitignored — it holds server address and SSH key path.
+On a new machine, create it manually using the values in the Access section above.
+
 ## Deployment
 
 Deploy by running `deploy.ps1` — it SCPs each plugin file individually to the
@@ -88,10 +101,12 @@ For every feature / significant change:
 1. Write code locally in `miselinska-komise/`
 2. Run `deploy.ps1`
 3. SSH-verify: check logs, WP-CLI, REST API as appropriate
-4. **Ask the user to visually confirm in the browser** — this is always required
-5. User reports what looks wrong → I fix → repeat from step 2
+4. **Ask the user to visually confirm in the browser** — always required
+5. User reports what looks wrong → fix → repeat from step 2
+6. Once confirmed working: `git add`, `git commit`, `git push`
 
-Visual confirmation from the user is a mandatory step for every feature. Never consider a feature done without it.
+Never consider a feature done without visual confirmation from the user.
+Never commit until the feature is confirmed working.
 
 ## WP-CLI Reference
 
