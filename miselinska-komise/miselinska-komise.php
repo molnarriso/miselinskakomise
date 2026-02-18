@@ -25,7 +25,7 @@ require_once MK_DIR . 'shortcodes/form.php';
 // Enqueue global plugin styles
 add_action( 'wp_enqueue_scripts', 'mk_enqueue_styles' );
 function mk_enqueue_styles() {
-	wp_enqueue_style( 'miselinska-komise', MK_URL . 'assets/css/miselinska.css', [], '1.0.0' );
+	wp_enqueue_style( 'miselinska-komise', MK_URL . 'assets/css/miselinska.css', [], '1.1.0' );
 }
 
 // Inject map-relevant meta directly into REST response

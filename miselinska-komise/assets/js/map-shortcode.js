@@ -24,16 +24,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		function makeIcon(rating) {
 			var color = ratingColor(rating);
-			var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">' +
-				'<path fill="' + color + '" stroke="#fff" stroke-width="1.5" d="M14 1C7.4 1 2 6.4 2 13c0 8.5 12 22 12 22S26 21.5 26 13C26 6.4 20.6 1 14 1z"/>' +
-				'<circle fill="#fff" cx="14" cy="13" r="5"/>' +
+			var label = rating.toFixed(1);
+			var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="38" height="48" viewBox="0 0 38 48">' +
+				'<path fill="' + color + '" stroke="#fff" stroke-width="2" d="M19 1C10.2 1 3 8.2 3 17c0 11.3 16 30 16 30S35 28.3 35 17C35 8.2 27.8 1 19 1z"/>' +
+				'<text x="19" y="21" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="11" font-weight="700" font-family="sans-serif">' + label + '</text>' +
 				'</svg>';
 			return L.divIcon({
 				html: svg,
 				className: '',
-				iconSize: [28, 36],
-				iconAnchor: [14, 36],
-				popupAnchor: [0, -36]
+				iconSize: [38, 48],
+				iconAnchor: [19, 48],
+				popupAnchor: [0, -48]
 			});
 		}
 
@@ -60,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						var rating   = parseFloat(review.mk_rating) || 0;
 						var name     = review.mk_restaurant_name || review.title.rendered;
 						var thumb    = '';
-						var mapsUrl  = review.mk_google_maps_url || '';
 
 						if (review._embedded && review._embedded['wp:featuredmedia'] &&
 							review._embedded['wp:featuredmedia'][0]) {
@@ -68,17 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 
 						var imgHtml = thumb
-							? '<img src="' + thumb + '" style="width:160px;height:100px;object-fit:cover;border-radius:4px;margin-bottom:6px;display:block;">'
+							? '<img src="' + thumb + '" style="width:160px;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;display:block;">'
 							: '';
 
 						var popup =
 							'<div style="min-width:160px;font-family:inherit;">' +
 							imgHtml +
-							'<strong style="font-size:0.95rem;">' + name + '</strong><br>' +
-							'<span style="background:' + ratingColor(rating) + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:0.85rem;font-weight:700;">' +
-							rating.toFixed(1) + '</span><br>' +
-							(mapsUrl ? '<a href="' + mapsUrl + '" target="_blank" rel="noopener" style="font-size:0.82rem;">Google Maps</a><br>' : '') +
-							'<a href="' + review.link + '" style="font-size:0.82rem;">Číst recenzi →</a>' +
+							'<strong style="font-size:0.95rem;display:block;margin-bottom:6px;">' + name + '</strong>' +
+							'<div style="display:flex;align-items:center;gap:8px;">' +
+							'<span style="background:' + ratingColor(rating) + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:0.85rem;font-weight:700;">' + rating.toFixed(1) + '</span>' +
+							'<a href="' + review.link + '" style="font-size:0.82rem;font-weight:600;color:#2563eb;border:1.5px solid #2563eb;border-radius:20px;padding:2px 10px;text-decoration:none;">Detail</a>' +
+							'</div>' +
 							'</div>';
 
 						var marker = L.marker([lat, lng], { icon: makeIcon(rating) })

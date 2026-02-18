@@ -63,7 +63,17 @@ Everything is in a single plugin — no ACF, no page builders, no other dependen
 | Map page | `[miselinska_mapa]` — Leaflet + OpenStreetMap, color-coded pins, MarkerCluster |
 | Review feed | `[miselinska_feed]` — card grid, newest first |
 | Submit form | `[miselinska_formular]` — login-required, AJAX, photo upload |
-| Theme | GeneratePress (lightweight, no sidebar, responsive) |
+| Theme | GeneratePress (no sidebar, hooks: `generate_sidebar_layout`, `generate_show_title`, `generate_copyright`) |
+
+### Pages
+
+| URL | Shortcode(s) | Notes |
+|-----|-------------|-------|
+| `/` (Domů) | `[miselinska_mapa height="400"]` + `[miselinska_feed]` | Public homepage — map + review cards |
+| `/mapa/` | `[miselinska_mapa]` | Standalone full map |
+| `/nova-recenze/` | `[miselinska_formular]` | Submit a new review — **login required**, not linked in nav (direct URL only) |
+
+No nav menu links are shown. Authorized users access `/nova-recenze/` directly by URL.
 
 ---
 

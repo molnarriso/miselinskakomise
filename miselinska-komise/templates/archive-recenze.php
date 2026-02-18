@@ -38,17 +38,19 @@ get_header();
 			}
 		?>
 		<article <?php post_class( 'mk-card' ); ?>>
-			<?php if ( $thumb ) : ?>
 			<a href="<?php echo esc_url( $permalink ); ?>" class="mk-card-thumb-link">
-				<?php echo $thumb; ?>
+				<?php if ( $thumb ) : ?>
+					<?php echo $thumb; ?>
+				<?php else : ?>
+					<div class="mk-card-thumb mk-card-thumb-placeholder"></div>
+				<?php endif; ?>
+				<span class="mk-rating-badge <?php echo esc_attr( $rating_class ); ?>"><?php echo number_format( $rating, 1 ); ?></span>
 			</a>
-			<?php endif; ?>
 			<div class="mk-card-body">
 				<div class="mk-card-header">
 					<h2 class="mk-card-title">
 						<a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( $rest_name ); ?></a>
 					</h2>
-					<span class="mk-rating-badge <?php echo esc_attr( $rating_class ); ?>"><?php echo number_format( $rating, 1 ); ?></span>
 				</div>
 				<p class="mk-card-meta">
 					<span class="mk-author"><?php echo esc_html( get_the_author() ); ?></span>
@@ -59,7 +61,7 @@ get_header();
 				<p class="mk-tags"><?php echo $tag_html; ?></p>
 				<?php endif; ?>
 				<p class="mk-excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
-				<a class="mk-card-link" href="<?php echo esc_url( $permalink ); ?>">Číst recenzi →</a>
+				<a class="mk-card-link" href="<?php echo esc_url( $permalink ); ?>">Detail</a>
 			</div>
 		</article>
 		<?php endwhile; ?>

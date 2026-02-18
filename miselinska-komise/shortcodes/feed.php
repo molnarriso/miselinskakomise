@@ -58,19 +58,18 @@ function mk_shortcode_feed( $atts ) {
 			}
 		}
 
+		$rating_badge = '<span class="mk-rating-badge ' . esc_attr( $rating_class ) . '">' . number_format( $rating, 1 ) . '</span>';
+		$thumb_html = $thumb ?: '<div class="mk-card-thumb mk-card-thumb-placeholder"></div>';
 		$html .= '<article class="mk-card">';
-		if ( $thumb ) {
-			$html .= '<a href="' . esc_url( $permalink ) . '" class="mk-card-thumb-link">' . $thumb . '</a>';
-		}
+		$html .= '<a href="' . esc_url( $permalink ) . '" class="mk-card-thumb-link">' . $thumb_html . $rating_badge . '</a>';
 		$html .= '<div class="mk-card-body">';
 		$html .= '<div class="mk-card-header">';
 		$html .= '<h2 class="mk-card-title"><a href="' . esc_url( $permalink ) . '">' . esc_html( $rest_name ) . '</a></h2>';
-		$html .= '<span class="mk-rating-badge ' . esc_attr( $rating_class ) . '">' . number_format( $rating, 1 ) . '</span>';
 		$html .= '</div>';
 		$html .= '<p class="mk-card-meta"><span class="mk-author">' . esc_html( $author ) . '</span> &middot; <span class="mk-date">' . esc_html( $date ) . '</span></p>';
 		if ( $tag_html ) $html .= '<p class="mk-tags">' . $tag_html . '</p>';
 		if ( $excerpt ) $html .= '<p class="mk-excerpt">' . esc_html( $excerpt ) . '</p>';
-		$html .= '<a class="mk-card-link" href="' . esc_url( $permalink ) . '">Číst recenzi →</a>';
+		$html .= '<a class="mk-card-link" href="' . esc_url( $permalink ) . '">Detail</a>';
 		$html .= '</div></article>';
 	}
 	$html .= '</div>';

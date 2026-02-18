@@ -43,7 +43,7 @@ Do NOT use Pattern A for SSH — `$key`/`$server` dollar signs get stripped by t
 # 1. Write script with the Write tool to C:\Development\miselinskakomise\tmp\task.ps1
 #    Start with: . "$PSScriptRoot\..\deploy.config.ps1"
 #    Then use $key, $server, $src, $remote, $wp_user, $wp_password freely
-# 2. powershell.exe -ExecutionPolicy Bypass -File C:\Development\miselinskakomise\tmp\task.ps1
+# 2. powershell.exe -ExecutionPolicy Bypass -File "C:\Development\miselinskakomise\tmp\task.ps1"
 # 3. The tmp/ folder is disposable — no cleanup needed
 ```
 
@@ -68,7 +68,7 @@ On a new machine, copy `deploy.config.ps1.example` and fill in the real values.
 Run from the Bash tool:
 
 ```
-powershell.exe -ExecutionPolicy Bypass -File C:\Development\miselinskakomise\deploy.ps1
+powershell.exe -ExecutionPolicy Bypass -File "C:\Development\miselinskakomise\deploy.ps1"
 ```
 
 What the script does, in order:
